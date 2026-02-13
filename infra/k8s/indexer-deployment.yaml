@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: safety-indexer
+  namespace: surgical-data
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: safety-indexer
+  template:
+    metadata:
+      labels:
+        app: safety-indexer
+    spec:
+      containers:
+        - name: safety-indexer
+          image: ghcr.io/mohosy/safety-indexer:latest
+          ports:
+            - containerPort: 8081
+          env:
+            - name: TIMELINE_BACKEND
+              value: cassandra
+            - name: SEARCH_BACKEND
+              value: elasticsearch
+            - name: DOCS_BACKEND
+              value: mongodb
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8081
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: safety-indexer
+  namespace: surgical-data
+spec:
+  selector:
+    app: safety-indexer
+  ports:
+    - port: 80
+      targetPort: 8081

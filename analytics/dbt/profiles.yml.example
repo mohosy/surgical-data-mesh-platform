@@ -1,0 +1,13 @@
+surgical_data_mesh:
+  outputs:
+    dev:
+      type: snowflake
+      account: "<account>"
+      user: "<user>"
+      password: "<password>"
+      role: "<role>"
+      warehouse: "<warehouse>"
+      database: "SURGICAL_DATA"
+      schema: "ANALYTICS"
+      threads: 4
+  target: dev

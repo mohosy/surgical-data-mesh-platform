@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: telemetry-gateway
+  namespace: surgical-data
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: telemetry-gateway
+  template:
+    metadata:
+      labels:
+        app: telemetry-gateway
+    spec:
+      containers:
+        - name: telemetry-gateway
+          image: ghcr.io/mohosy/telemetry-gateway:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: kafka.surgical-data.svc.cluster.local:9092
+            - name: KAFKA_TOPIC
+              value: surgical.telemetry.raw
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: telemetry-gateway
+  namespace: surgical-data
+spec:
+  selector:
+    app: telemetry-gateway
+  ports:
+    - port: 80
+      targetPort: 8080

@@ -1,0 +1,21 @@
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.mypy_cache/
+*.log
+.env
+.DS_Store
+.idea/
+.vscode/
+
+# Java
+**/target/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+
+# Local artifacts
+data/

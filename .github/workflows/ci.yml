@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  python-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        path:
+          - services/ingest-service
+          - services/indexer-service
+          - jobs
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install deps
+        run: |
+          cd ${{ matrix.path }}
+          pip install -r requirements.txt
+      - name: Run pytest
+        run: |
+          cd ${{ matrix.path }}
+          pytest -q
+
+  java-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Run Maven tests
+        run: |
+          cd services/query-service-java
+          mvn -q test
