@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional, Union
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class TelemetryEvent(BaseModel):
@@ -22,3 +22,24 @@ class IngestResponse(BaseModel):
     accepted: bool
     topic: str
     partition_key: str
+    event_id: str
+    deduplicated: bool = False
+
+
+class BatchIngestRequest(BaseModel):
+    events: list[TelemetryEvent] = Field(min_length=1, max_length=1000)
+
+    @model_validator(mode="after")
+    def check_unique_event_ids(self) -> "BatchIngestRequest":
+        ids = [event.event_id for event in self.events]
+        if len(set(ids)) != len(ids):
+            raise ValueError("Batch contains duplicate event_id values")
+        return self
+
+
+class BatchIngestResponse(BaseModel):
+    total: int
+    accepted: int
+    deduplicated: int
+    failed: int
+    failures: list[dict[str, str]] = Field(default_factory=list)

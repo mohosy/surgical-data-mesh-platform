@@ -11,6 +11,16 @@ This project is intentionally designed to demonstrate the exact engineering surf
 - Shows both batch-lakehouse thinking (Spark/Iceberg) and online serving (Cassandra/Elasticsearch/MongoDB).
 - Includes practical engineering workflows: unit/integration tests, Docker, Kubernetes manifests, Terraform starter, and Prometheus metrics.
 
+## Advanced capabilities
+
+- **Idempotent ingest path:** replay-safe event handling keyed by `event_id`.
+- **Batch ingest endpoint:** supports up to 1000 events per call with per-batch accounting.
+- **Stateful safety engine:** composite risk scoring, high-force/high-latency/error triggers, and alert feeds.
+- **Risk analytics APIs:** patient and procedure summaries (`avg risk`, `p95 latency`, `critical count`).
+- **Operational metrics:** Prometheus counters for deduplication, alert emission, and query load.
+- **Analytical transforms:** Spark-side safety scoring, force spike detection, and KPI aggregation helpers.
+- **Java analytical API:** top critical alerts and patient summary endpoints for low-latency consumers.
+
 ## Architecture
 
 ```mermaid
@@ -85,9 +95,15 @@ In a second shell:
 
 ```bash
 python scripts/demo_load.py --count 75
+curl "http://localhost:8080/events/batch" -H "Content-Type: application/json" -d '{"events":[{"event_id":"evt-demo-100","patient_id":"pat-1","procedure_id":"proc-1","robot_arm":"arm_1","step":"suturing","force_newtons":18.2,"velocity_mm_s":11.0,"latency_ms":42,"timestamp":"2026-02-13T18:20:00Z","attributes":{"or_room":"OR-1"}}]}'
 curl "http://localhost:8081/search?q=sutur"
 curl "http://localhost:8081/patients/pat-1/timeline"
+curl "http://localhost:8081/alerts/recent?min_level=high&limit=5"
+curl "http://localhost:8081/patients/pat-1/risk-summary"
+curl "http://localhost:8081/procedures/proc-1/risk-summary"
 curl "http://localhost:8082/api/health"
+curl "http://localhost:8082/api/patients/pat-1/summary"
+curl "http://localhost:8082/api/alerts/top?limit=3"
 ```
 
 ## Test commands
@@ -104,3 +120,4 @@ cd services/query-service-java && mvn test
 - The service defaults to in-memory stores for local reliability; backend toggles allow Cassandra/Elasticsearch/MongoDB profiles without changing API contracts.
 - Spark job writes are configured in canonical Iceberg style and designed for checkpointed exactly-once-like processing semantics.
 - Terraform intentionally starts compact, so infra can grow iteratively (MSK/EMR/EKS modules can be layered next without rework).
+- Ingest service now supports deduplicated and batch workflows while preserving single-event low-latency paths.

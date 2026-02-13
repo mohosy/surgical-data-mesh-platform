@@ -36,4 +36,14 @@ public class QueryController {
     public List<Map<String, Object>> timeline(@PathVariable String patientId) {
         return queryService.timeline(patientId);
     }
+
+    @GetMapping("/patients/{patientId}/summary")
+    public Map<String, Object> patientSummary(@PathVariable String patientId) {
+        return queryService.patientRiskSummary(patientId);
+    }
+
+    @GetMapping("/alerts/top")
+    public List<Map<String, Object>> topAlerts(@RequestParam(defaultValue = "5") int limit) {
+        return queryService.topCriticalAlerts(limit);
+    }
 }
