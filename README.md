@@ -21,6 +21,16 @@ This project is intentionally designed to demonstrate the exact engineering surf
 - **Analytical transforms:** Spark-side safety scoring, force spike detection, and KPI aggregation helpers.
 - **Java analytical API:** top critical alerts and patient summary endpoints for low-latency consumers.
 
+## Architecture tradeoffs
+
+| Decision | Why this choice | Tradeoff |
+|---|---|---|
+| Kafka for raw telemetry ingress | Durable replay, partition-key ordering per patient/procedure, easy fan-out to stream + serving paths | More infra and operational overhead than direct service-to-service ingestion |
+| Spark + Iceberg for the lakehouse path | Open table format, incremental append model, strong interoperability with warehouse tooling | Higher startup/runtime cost than lightweight batch jobs |
+| Polyglot serving stores (Cassandra + Elasticsearch + MongoDB) | Matches access patterns: timeline reads, text/error search, and flexible case summaries | More components to operate and maintain |
+| Python for ingest/indexing + Java for query APIs | Fast iteration for data services plus JVM ecosystem for typed API services | Cross-language contracts require stronger API discipline |
+| In-memory fallback backends in dev mode | Makes local demos and CI deterministic without requiring external clusters | Less representative than managed prod backends for performance profiling |
+
 ## Architecture
 
 ```mermaid
@@ -42,6 +52,12 @@ flowchart LR
     B --> K["Prometheus\n/metrics scraping"]
     F --> K
 ```
+
+### UI snapshot
+
+<p align="center">
+  <img src="assets/touchless-ops-copilot.png" alt="Touchless Ops Copilot interface" width="920" />
+</p>
 
 ## Stack coverage map
 
